@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+
+# Personal test photos
+public/test/*
+!public/test/README.md
+
+.env*

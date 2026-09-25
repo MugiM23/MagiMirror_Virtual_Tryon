@@ -1,0 +1,346 @@
+/*
+ * Dark plum base: on a two-way mirror, dark pixels read as reflective glass,
+ * so the same palette carries over to the Pi display later.
+ */
+.page {
+  --plum: #231a26;
+  --plum-raised: #2f2433;
+  --glass: #d9dde2;
+  --brass: #c4a06a;
+  --brass-hover: #d4b27f;
+  --text: #f1ece6;
+  --muted: #a99ea9;
+  --danger: #e8998d;
+
+  min-height: 100vh;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  background: var(--plum);
+  color: var(--text);
+  font-family: var(--font-body), system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+.header {
+  max-width: 72rem;
+  margin: 0 auto 2.5rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), Didot, Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2.75rem, 7vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.015em;
+}
+
+.lede {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 1.0625rem;
+}
+
+.layout {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+}
+
+@media (max-width: 52rem) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Mirror ---------- */
+
+.mirrorFigure {
+  margin: 0;
+}
+
+.frame {
+  aspect-ratio: 3 / 4;
+  padding: 10px;
+  border: 1.5px solid var(--brass);
+  border-radius: 50% 50% 10px 10px / 30% 30% 10px 10px;
+}
+
+.glass {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50% 50% 4px 4px / 29% 29% 4px 4px;
+  background: linear-gradient(160deg, #3b3142, var(--plum-raised) 60%);
+}
+
+.mirrorImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.mirrorEmpty {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.resultTitle {
+  margin: 0 0 1rem;
+  font-family: var(--font-display), Didot, Georgia, serif;
+  font-weight: 500;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.photoError {
+  margin: 0.5rem 0 0;
+  color: var(--danger);
+  font-size: 0.9375rem;
+}
+
+/* The one piece of ambient motion: light passing across the glass while the model works. */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 1.5rem 18%;
+  background: rgb(35 26 38 / 0.6);
+  text-align: center;
+}
+
+.sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.16) 50%, transparent 65%);
+  background-size: 250% 100%;
+  animation: sheen 2.6s ease-in-out infinite;
+}
+
+@keyframes sheen {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheen {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+.loadingTitle {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-display), Didot, Georgia, serif;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.loadingSub {
+  position: relative;
+  margin: 0.25rem 0 0;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+/* ---------- Products ---------- */
+
+.panelTitle {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-display), Didot, Georgia, serif;
+  font-weight: 500;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.gallery {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 1.5rem 1.25rem;
+}
+
+.card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card:disabled {
+  cursor: not-allowed;
+}
+
+.cardImageWrap {
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--plum-raised);
+  outline: 1.5px solid transparent;
+  outline-offset: 4px;
+  transition: outline-color 150ms ease;
+}
+
+.card[data-selected="true"] .cardImageWrap {
+  outline-color: var(--brass);
+}
+
+.card:focus-visible {
+  outline: none;
+}
+
+.card:focus-visible .cardImageWrap {
+  outline: 2px solid var(--glass);
+}
+
+.card:disabled:not([data-selected="true"]) .cardImageWrap {
+  opacity: 0.45;
+}
+
+.cardImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardName {
+  margin-top: 0.75rem;
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.cardPrice {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardTag {
+  color: var(--brass);
+}
+
+/* ---------- Actions ---------- */
+
+.actions {
+  margin-top: 2.25rem;
+}
+
+.primaryButton {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brass);
+  color: var(--plum);
+  font: inherit;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--brass-hover);
+}
+
+.primaryButton:disabled {
+  background: #4a3e4d;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.hint {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.error {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-left: 2px solid var(--danger);
+  background: rgb(232 153 141 / 0.08);
+}
+
+.errorTitle {
+  margin: 0;
+  font-weight: 600;
+}
+
+.errorDetail {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.secondaryButton {
+  margin-top: 0.9rem;
+  padding: 0.6rem 1.25rem;
+  border: 1.5px solid var(--text);
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.linkButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--brass);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.linkButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.linkButton:focus-visible {
+  outline: 2px solid var(--glass);
+  outline-offset: 3px;
+}
