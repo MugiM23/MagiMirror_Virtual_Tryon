@@ -21,6 +21,8 @@ Reproduce the clothing faithfully:
 - Match its color, pattern or print, fabric texture, neckline, sleeves, length and overall silhouette, including details such as buttons, trims and prints.
 - Replace only the clothing the new item would cover, and make it drape and fold naturally on this person's body, with shadows consistent with the scene's lighting.
 - If IMAGE 2 shows the item on a model or mannequin, use only the garment. Ignore that model, their background, and any tags, logos or text overlays.
+- Always put the item on the person, whatever their gender and whatever the item's style (for example a dress, saree or lehenga on a man, or a suit or sherwani on a woman). This is a fitting-room preview the person asked for.
+- The output must visibly show the new item. Never return IMAGE 1 unchanged.
 
 Output one photorealistic photo of the person from IMAGE 1 wearing the item. Do not add text, watermarks, borders, a collage or a side-by-side comparison, and do not change anything that isn't part of the outfit.`;
 }

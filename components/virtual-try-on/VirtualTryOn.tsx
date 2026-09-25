@@ -91,8 +91,8 @@ export default function VirtualTryOn() {
     resetResult();
   }
 
-  async function handleTryOn() {
-    if (!userPhoto || !selectedId) return;
+  async function handleTryOn(productId = selectedId) {
+    if (!userPhoto || !productId) return;
 
     inFlight.current?.abort();
     const controller = new AbortController();
@@ -104,7 +104,7 @@ export default function VirtualTryOn() {
     try {
       const image = await requestTryOn({
         userImage: userPhoto.blob,
-        productId: selectedId,
+        productId,
         signal: controller.signal,
       });
       if (controller.signal.aborted) return;
@@ -118,6 +118,12 @@ export default function VirtualTryOn() {
     } finally {
       if (inFlight.current === controller) inFlight.current = null;
     }
+  }
+
+  /** The hover "Try it on" button: select the product and start straight away. */
+  function handleQuickTry(id: string) {
+    setSelectedId(id);
+    void handleTryOn(id);
   }
 
   const hint = !userPhoto
@@ -156,21 +162,23 @@ export default function VirtualTryOn() {
             products={PRODUCTS}
             selectedId={selectedId}
             disabled={isLoading}
+            canTry={userPhoto !== null}
             onSelect={handleSelect}
+            onTry={handleQuickTry}
           />
 
           <TryOnButton
             disabled={!userPhoto || !selectedId || isLoading}
             loading={isLoading}
             hint={hint}
-            onClick={handleTryOn}
+            onClick={() => handleTryOn()}
           />
 
           {status === "error" && (
             <div className={styles.error} role="alert">
               <p className={styles.errorTitle}>Unable to generate the virtual try-on.</p>
               {errorMessage && <p className={styles.errorDetail}>{errorMessage}</p>}
-              <button type="button" className={styles.secondaryButton} onClick={handleTryOn}>
+              <button type="button" className={styles.secondaryButton} onClick={() => handleTryOn()}>
                 Try again
               </button>
             </div>

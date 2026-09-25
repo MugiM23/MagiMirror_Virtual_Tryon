@@ -41,6 +41,18 @@ function mapGeminiError(err: unknown, signal: AbortSignal): TryOnError {
 
   if (err instanceof ApiError) {
     if (err.status === 429) {
+      // "limit: 0" means the project has no quota for this model at all
+      // (e.g. image models on the free tier), so retrying can never succeed.
+      if (/limit:\s*0\b/.test(err.message)) {
+        console.error(
+          "[virtual-try-on] Gemini quota is 0 for this model. Enable billing on the API key's project in Google AI Studio.",
+        );
+        return new TryOnError(
+          "CONFIG_ERROR",
+          "The try-on service isn't set up for image generation yet.",
+          503,
+        );
+      }
       return new TryOnError(
         "RATE_LIMITED",
         "The try-on service is busy right now. Wait a moment and try again.",
@@ -122,7 +134,15 @@ export const geminiProvider: TryOnProvider = {
         ?.map((p) => p.text)
         .filter(Boolean)
         .join(" ");
-      console.warn("[virtual-try-on] no image returned", { finishReason, text });
+      console.warn("[virtual-try-on] no image returned", {
+        finishReason,
+        finishMessage: candidate?.finishMessage,
+        text,
+        candidates: response.candidates?.length ?? 0,
+        promptFeedback: response.promptFeedback,
+        safetyRatings: candidate?.safetyRatings,
+        usage: response.usageMetadata,
+      });
 
       if (finishReason && BLOCKED_FINISH_REASONS.has(finishReason)) {
         throw new TryOnError(

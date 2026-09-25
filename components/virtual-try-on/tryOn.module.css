@@ -176,6 +176,44 @@
   line-height: 1.2;
 }
 
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.5rem 1.25rem;
+  border: 1.5px solid #4a3e4d;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.tab:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.tab[aria-pressed="true"] {
+  border-color: var(--brass);
+  background: var(--brass);
+  color: var(--plum);
+  font-weight: 600;
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--glass);
+  outline-offset: 2px;
+}
+
 .gallery {
   list-style: none;
   margin: 0;
@@ -186,6 +224,10 @@
 }
 
 .card {
+  position: relative;
+}
+
+.cardSelect {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -198,8 +240,84 @@
   cursor: pointer;
 }
 
-.card:disabled {
+.cardSelect:disabled {
   cursor: not-allowed;
+}
+
+/* Same box as the image, so the button lands at the image's bottom edge. */
+.cardOverlay {
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 3 / 4;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.625rem;
+  border-radius: 4px;
+  background: linear-gradient(to top, rgb(35 26 38 / 0.85), transparent 45%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.cardTry {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brass);
+  color: var(--plum);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateY(0.375rem);
+  transition:
+    transform 150ms ease,
+    background-color 150ms ease;
+}
+
+.card:hover .cardOverlay,
+.card:focus-within .cardOverlay {
+  opacity: 1;
+}
+
+.card:hover .cardTry,
+.card:focus-within .cardTry {
+  transform: none;
+}
+
+.cardTry:hover:not(:disabled) {
+  background: var(--brass-hover);
+}
+
+.cardTry:disabled {
+  background: #4a3e4d;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.cardTry:focus-visible {
+  outline: 2px solid var(--glass);
+  outline-offset: 2px;
+}
+
+/* Touch screens (the mirror) can't hover, so keep the button visible. */
+@media (hover: none) {
+  .cardOverlay {
+    opacity: 1;
+  }
+
+  .cardTry {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardOverlay,
+  .cardTry {
+    transition: none;
+  }
 }
 
 .cardImageWrap {
@@ -217,15 +335,15 @@
   outline-color: var(--brass);
 }
 
-.card:focus-visible {
+.cardSelect:focus-visible {
   outline: none;
 }
 
-.card:focus-visible .cardImageWrap {
+.cardSelect:focus-visible .cardImageWrap {
   outline: 2px solid var(--glass);
 }
 
-.card:disabled:not([data-selected="true"]) .cardImageWrap {
+.cardSelect:disabled:not([aria-pressed="true"]) .cardImageWrap {
   opacity: 0.45;
 }
 

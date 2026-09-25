@@ -24,7 +24,7 @@ npm run dev
 
 Open http://localhost:3000 (it redirects to `/try-on`).
 
-The three products in `public/products/` are simple illustrated placeholders so everything works immediately. Swap in real garment photos (flat-lay or on a plain background) and edit names and prices in `lib/products.ts`.
+The 15 products in `public/products/` are Unsplash photos (credits in `public/products/CREDITS.md`). Edit names and prices in `lib/products.ts`; image files must be named `<id>.jpg`.
 
 ## Scripts
 
@@ -66,7 +66,7 @@ To switch AI providers later, add `lib/virtualTryOn/providers/<name>.ts` impleme
 | `userImage` | JPEG, PNG or WEBP file, max 8 MB |
 | `productId` | an id from `lib/products.ts`     |
 
-Success: `{ "image": "data:image/png;base64,...", "productId": "dress-1" }`
+Success: `{ "image": "data:image/png;base64,...", "productId": "white-floral-midi-dress" }`
 Failure: `{ "error": { "code": "...", "message": "safe to display" } }`
 
 The server looks up the garment image from `productId` instead of accepting an image or URL from the browser. Images stay in memory for the request only; nothing is written to disk. The API key is read only on the server and is never sent to the browser.
@@ -74,7 +74,7 @@ The server looks up the garment image from `productId` instead of accepting an i
 Test without the UI:
 
 ```bash
-curl -F userImage=@public/test/user.jpg -F productId=dress-1 localhost:3000/api/virtual-try-on
+curl -F userImage=@public/test/user.jpg -F productId=white-floral-midi-dress localhost:3000/api/virtual-try-on
 ```
 
 ## Configuration
