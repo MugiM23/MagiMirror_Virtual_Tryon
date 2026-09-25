@@ -13,7 +13,7 @@ Built with Next.js (App Router), React and TypeScript. This is Phase 1: no camer
 
 ```bash
 npm install
-cp .env.local.example .env.local   # then add your GEMINI_API_KEY
+echo "GEMINI_API_KEY=your-key" > .env.local   # key from https://aistudio.google.com/apikey
 ```
 
 Add a photo of a person at `public/test/user.jpg` (full or three-quarter body, facing the camera, works best). This folder is gitignored so personal photos stay off GitHub. You can also upload a photo from the page.
@@ -24,7 +24,7 @@ npm run dev
 
 Open http://localhost:3000 (it redirects to `/try-on`).
 
-The 15 products in `public/products/` are Unsplash photos (credits in `public/products/CREDITS.md`). Edit names and prices in `lib/products.ts`; image files must be named `<id>.jpg`.
+The 30 products (15 women's, 15 men's) in `public/products/` are Unsplash photos (credits in `public/products/CREDITS.md`). Edit names, prices and categories in `lib/products.ts`; image files must be named `<id>.jpg`.
 
 ## Scripts
 
@@ -84,8 +84,30 @@ curl -F userImage=@public/test/user.jpg -F productId=white-floral-midi-dress loc
 | `GEMINI_API_KEY`     | required                 |
 | `GEMINI_IMAGE_MODEL` | `gemini-2.5-flash-image` |
 | `TRYON_PROVIDER`     | `gemini`                 |
+| `ACCESS_CODE`        | unset (no gate)          |
+
+When `ACCESS_CODE` is set, every page, image and API call returns 401 until the visitor opens the app once with `?key=<code>`, which sets a one-year cookie. Set it on any public deployment so strangers can't run up your Gemini bill.
 
 Output is requested as a 3:4 portrait to suit the mirror. The server times out after 60 seconds and the browser after 90. Results are an AI preview, not a sizing tool, and the UI says so.
+
+## Deploy (Vercel) and run on the Pi
+
+1. In [Vercel](https://vercel.com/new), import this GitHub repo. The Next.js defaults are correct.
+2. Under **Environment Variables**, add `GEMINI_API_KEY` and a long random `ACCESS_CODE`, then deploy.
+3. Open `https://<your-app>.vercel.app/try-on?key=<ACCESS_CODE>` to check it works.
+
+Every push to `main` redeploys automatically.
+
+On the Pi (Raspberry Pi OS with desktop):
+
+```bash
+git clone https://github.com/MugiM23/MagiMirror_Virtual_Tryon.git
+cd MagiMirror_Virtual_Tryon
+./scripts/pi-kiosk.sh install   # paste the URL from step 3
+sudo reboot
+```
+
+The Pi opens the mirror full-screen in Chromium at every login. The URL and code are stored in `~/.config/magimirror/url`, not in the repo. The Pi doesn't need Node.js or the Gemini key.
 
 ## Roadmap
 
