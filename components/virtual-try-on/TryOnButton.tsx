@@ -3,11 +3,12 @@ import styles from "./tryOn.module.css";
 interface Props {
   disabled: boolean;
   loading: boolean;
+  label: string;
   hint?: string | null;
   onClick: () => void;
 }
 
-export default function TryOnButton({ disabled, loading, hint, onClick }: Props) {
+export default function TryOnButton({ disabled, loading, label, hint, onClick }: Props) {
   return (
     <div className={styles.actions}>
       <button
@@ -17,7 +18,7 @@ export default function TryOnButton({ disabled, loading, hint, onClick }: Props)
         aria-busy={loading}
         onClick={onClick}
       >
-        {loading ? "Creating your look..." : "Try This Outfit"}
+        {loading ? "Creating your look..." : label}
       </button>
       {hint && <p className={styles.hint}>{hint}</p>}
     </div>

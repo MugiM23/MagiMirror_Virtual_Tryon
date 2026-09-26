@@ -23,6 +23,55 @@
 .header {
   max-width: 72rem;
   margin: 0 auto 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem 2rem;
+}
+
+/* Clothing / Jewellery switch: one pill with two halves. */
+.sections {
+  display: inline-flex;
+  padding: 4px;
+  border: 1.5px solid var(--brass);
+  border-radius: 999px;
+}
+
+.sectionButton {
+  padding: 0.65rem 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.sectionButton[aria-pressed="true"] {
+  background: var(--brass);
+  color: var(--plum);
+}
+
+.sectionButton:disabled:not([aria-pressed="true"]) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sectionButton:focus-visible {
+  outline: 2px solid var(--glass);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sectionButton {
+    transition: none;
+  }
 }
 
 .title {
@@ -49,9 +98,19 @@
   align-items: start;
 }
 
+/* Side by side, the mirror stays in view while the page scrolls through the outfits. */
+.stage {
+  position: sticky;
+  top: 1.5rem;
+}
+
 @media (max-width: 52rem) {
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .stage {
+    position: static;
   }
 }
 
@@ -61,7 +120,11 @@
   margin: 0;
 }
 
+/* Never taller than the screen (minus room for the title and caption), so you always see all of yourself. */
 .frame {
+  width: min(100%, (100vh - 12rem) * 3 / 4);
+  width: min(100%, (100dvh - 12rem) * 3 / 4);
+  margin-inline: auto;
   aspect-ratio: 3 / 4;
   padding: 10px;
   border: 1.5px solid var(--brass);
@@ -84,13 +147,33 @@
   object-position: center top;
 }
 
-.mirrorEmpty {
+.mirrorVideo {
+  display: block;
+  width: 100%;
   height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* behave like a mirror */
+}
+
+.mirrorEmpty {
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
   padding: 2rem;
   text-align: center;
   color: var(--muted);
+}
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(35 26 38 / 0.35);
+  font-family: var(--font-display), Didot, Georgia, serif;
+  font-size: clamp(5rem, 18vw, 10rem);
+  line-height: 1;
 }
 
 .resultTitle {
@@ -105,7 +188,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 0.5rem 1rem;
   margin-top: 1rem;
   color: var(--muted);
@@ -354,8 +437,53 @@
   object-fit: cover;
 }
 
+.cardSizes {
+  display: flex;
+  gap: 0.375rem;
+  margin-top: 0.625rem;
+}
+
+.sizeChip {
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0;
+  border: 1.5px solid #4a3e4d;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.sizeChip:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.sizeChip[aria-pressed="true"] {
+  border-color: var(--brass);
+  background: var(--brass);
+  color: var(--plum);
+}
+
+.sizeChip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sizeChip:focus-visible {
+  outline: 2px solid var(--glass);
+  outline-offset: 2px;
+}
+
 .cardName {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .cardMeta {
@@ -439,6 +567,28 @@
   cursor: pointer;
 }
 
+.captureButton {
+  padding: 0.6rem 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brass);
+  color: var(--plum);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.captureButton:hover:not(:disabled) {
+  background: var(--brass-hover);
+}
+
+.captureButton:disabled {
+  background: #4a3e4d;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
 .linkButton {
   padding: 0;
   border: 0;
@@ -457,6 +607,7 @@
 }
 
 .primaryButton:focus-visible,
+.captureButton:focus-visible,
 .secondaryButton:focus-visible,
 .linkButton:focus-visible {
   outline: 2px solid var(--glass);

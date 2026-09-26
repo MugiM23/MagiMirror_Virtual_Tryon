@@ -64,6 +64,7 @@ launch() {
     --no-first-run \
     --check-for-update-interval=31536000 \
     --overscroll-history-navigation=0 \
+    --use-fake-ui-for-media-stream \
     "$url"
 }
 

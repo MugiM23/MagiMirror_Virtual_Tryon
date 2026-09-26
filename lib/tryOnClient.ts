@@ -1,9 +1,9 @@
 // Browser-side helpers. No secrets here: this only talks to our own API route.
 
-export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // before resizing
+import { isGarmentSize, type GarmentSize } from "@/lib/products";
+
 const MAX_SIDE = 1536; // plenty for the model, keeps uploads small
-const CLIENT_TIMEOUT_MS = 90_000;
+const CLIENT_TIMEOUT_MS = 100_000;
 
 export type TryOnClientErrorCode =
   | "CANCELLED"
@@ -17,13 +17,6 @@ export class TryOnRequestError extends Error {
     super(message);
     this.name = "TryOnRequestError";
   }
-}
-
-/** Returns an error message for an unusable file, or null if it's fine. */
-export function validatePhoto(file: File): string | null {
-  if (!ACCEPTED_TYPES.includes(file.type)) return "Use a JPEG, PNG or WEBP photo.";
-  if (file.size > MAX_UPLOAD_BYTES) return "That photo is too large. Use one under 20 MB.";
-  return null;
 }
 
 /**
@@ -60,7 +53,18 @@ export async function prepareImage(file: Blob): Promise<Blob> {
 
 interface SuccessBody {
   image: string;
+  estimatedSize?: unknown;
 }
+
+export interface TryOnResponse {
+  /** data: URL of the generated image */
+  image: string;
+  /** The person's usual size as estimated from their photo, if it could be judged */
+  estimatedSize: GarmentSize | null;
+}
+
+/** Codes meaning the photo itself can't be used, so the user has to take a new one. */
+export const RETAKE_CODES = new Set(["UNSAFE_PHOTO", "NO_PERSON"]);
 interface ErrorBody {
   error: { code: string; message: string };
 }
@@ -79,16 +83,18 @@ function extensionFor(type: string): string {
   return "jpg";
 }
 
-/** Calls POST /api/virtual-try-on and resolves with a data: URL of the result. */
+/** Calls POST /api/virtual-try-on. */
 export async function requestTryOn({
   userImage,
   productId,
+  size,
   signal,
 }: {
   userImage: Blob;
   productId: string;
+  size?: GarmentSize | null;
   signal?: AbortSignal;
-}): Promise<string> {
+}): Promise<TryOnResponse> {
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {
@@ -101,6 +107,7 @@ export async function requestTryOn({
   const form = new FormData();
   form.append("userImage", userImage, `user.${extensionFor(userImage.type)}`);
   form.append("productId", productId);
+  if (size) form.append("size", size);
 
   try {
     let res: Response;
@@ -130,7 +137,10 @@ export async function requestTryOn({
     if (!isSuccessBody(body) || !body.image.startsWith("data:image/")) {
       throw new TryOnRequestError("The result image was missing. Try again.", "INVALID_RESPONSE");
     }
-    return body.image;
+    return {
+      image: body.image,
+      estimatedSize: isGarmentSize(body.estimatedSize) ? body.estimatedSize : null,
+    };
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", onCancel);

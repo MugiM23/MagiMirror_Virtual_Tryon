@@ -2,7 +2,7 @@
 
 AI virtual try-on for a future smart mirror. Pick an outfit, and Gemini (Nano Banana) generates a photo of you wearing it.
 
-Built with Next.js (App Router), React and TypeScript. This is Phase 1: no camera, Raspberry Pi or mirror hardware yet.
+Built with Next.js (App Router), React and TypeScript. The page takes your photo with the device camera (webcam or Pi camera).
 
 ## Requirements
 
@@ -16,7 +16,7 @@ npm install
 echo "GEMINI_API_KEY=your-key" > .env.local   # key from https://aistudio.google.com/apikey
 ```
 
-Add a photo of a person at `public/test/user.jpg` (full or three-quarter body, facing the camera, works best). This folder is gitignored so personal photos stay off GitHub. You can also upload a photo from the page.
+The page shows a live camera preview in the mirror. Tap **Take photo**, step back during the 3-second countdown (full or three-quarter body works best), then pick an outfit. The camera only works on `localhost` or over https, so open the LAN dev server through an https URL if testing from another device. The kiosk script launches Chromium with the camera permission pre-granted.
 
 ```bash
 npm run dev
@@ -24,7 +24,12 @@ npm run dev
 
 Open http://localhost:3000 (it redirects to `/try-on`).
 
-The 30 products (15 women's, 15 men's) in `public/products/` are Unsplash photos (credits in `public/products/CREDITS.md`). Edit names, prices and categories in `lib/products.ts`; image files must be named `<id>.jpg`.
+The header switches between **Clothing** and **Jewellery**.
+
+- Clothing: 30 products (15 women's, 15 men's) in `public/products/`, each with a `layer` (full outfit, top or jacket).
+- Jewellery: 15 pieces (9 women's, 6 men's) in `public/jewellery/`, each with a `placement` (neck, ears, wrist or finger). Jewellery is added without touching the clothes, and the photo must show that part of the body (`PART_NOT_VISIBLE` otherwise).
+
+All photos are from Unsplash (credits in each folder's `CREDITS.md`). Edit names, prices and categories in `lib/products.ts`; image files must be named `<id>.jpg`.
 
 ## Scripts
 
@@ -65,9 +70,18 @@ To switch AI providers later, add `lib/virtualTryOn/providers/<name>.ts` impleme
 |-------------|----------------------------------|
 | `userImage` | JPEG, PNG or WEBP file, max 8 MB |
 | `productId` | an id from `lib/products.ts`     |
+| `size`      | optional: `S`, `M`, `L` or `XL`  |
 
-Success: `{ "image": "data:image/png;base64,...", "productId": "white-floral-midi-dress" }`
+Success: `{ "image": "data:image/png;base64,...", "productId": "white-floral-midi-dress", "size": "L", "estimatedSize": "M" }`
 Failure: `{ "error": { "code": "...", "message": "safe to display" } }`
+
+Each request runs three steps:
+
+1. **Photo check.** A fast Gemini text model screens the photo for nudity, underwear-only or sexual content, and for no visible person. It also estimates the person's usual size and which collection (Men's or Women's) they shop from; an outfit from the other collection is refused (`WRONG_COLLECTION`) before anything is generated, and the page switches to the right tab. A failing photo is rejected (`UNSAFE_PHOTO` / `NO_PERSON`) and never reaches the image model; the page then discards it and reopens the camera. If the check itself can't run, the request fails (`SAFETY_CHECK_FAILED`) instead of skipping it.
+2. **Try-on.** The prompt (`lib/virtualTryOn/prompt.ts`) locks the face, body, skin tone and photo colours, swaps clothes according to the product's `layer` (`full` outfits replace everything, `top` replaces the top, `outer` jackets go over the existing top), and describes the fit from the gap between the chosen and estimated size.
+3. **Result check.** The generated image goes through the same screen before it's returned (`UNSAFE_RESULT`).
+
+Both Gemini calls also use Gemini's strictest sexual-content safety setting.
 
 The server looks up the garment image from `productId` instead of accepting an image or URL from the browser. Images stay in memory for the request only; nothing is written to disk. The API key is read only on the server and is never sent to the browser.
 
@@ -82,13 +96,14 @@ curl -F userImage=@public/test/user.jpg -F productId=white-floral-midi-dress loc
 | variable             | default                  |
 |----------------------|--------------------------|
 | `GEMINI_API_KEY`     | required                 |
-| `GEMINI_IMAGE_MODEL` | `gemini-2.5-flash-image` |
+| `GEMINI_IMAGE_MODEL` | `gemini-3.1-flash-image` |
+| `GEMINI_CHECK_MODEL` | `gemini-3.5-flash-lite`  |
 | `TRYON_PROVIDER`     | `gemini`                 |
 | `ACCESS_CODE`        | unset (no gate)          |
 
 When `ACCESS_CODE` is set, every page, image and API call returns 401 until the visitor opens the app once with `?key=<code>`, which sets a one-year cookie. Set it on any public deployment so strangers can't run up your Gemini bill.
 
-Output is requested as a 3:4 portrait to suit the mirror. The server times out after 60 seconds and the browser after 90. Results are an AI preview, not a sizing tool, and the UI says so.
+Output is requested as a 3:4 portrait to suit the mirror. The server times out after 80 seconds and the browser after 100. Results are an AI preview, not a sizing tool, and the UI says so.
 
 ## Deploy (Vercel) and run on the Pi
 
@@ -107,7 +122,7 @@ cd MagiMirror_Virtual_Tryon
 sudo reboot
 ```
 
-The Pi opens the mirror full-screen in Chromium at every login. The URL and code are stored in `~/.config/magimirror/url`, not in the repo. The Pi doesn't need Node.js or the Gemini key.
+The Pi opens the mirror full-screen in Chromium at every login, with camera access allowed automatically. The URL and code are stored in `~/.config/magimirror/url`, not in the repo. The Pi doesn't need Node.js or the Gemini key.
 
 ## Roadmap
 
